@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Quonochontaug Pond, Westerly and Charlestown, Rhode Island: algae and water testing, Landsat surface temperature since 1984, depth, bottom and shoreline, and the Quonochontaug Brook inlet. Produced by PPLT AGIKS, Pocasset Pokanoket Land Trust.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232b6f99'/%3E%3Cpath d='M10 40c8-6 14-6 22 0s14 6 22 0' fill='none' stroke='%23d8ecf7' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M18 26c4-6 10-8 16-4' fill='none' stroke='%23f2f4f0' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Quonochontaug Pond: water, algae, depth and shoreline">
+<meta property="og:description" content="Interactive map and analysis of Quonochontaug Pond, Rhode Island: water testing, algae, Landsat surface temperature since 1984, depth, eelgrass, shoreline and the Quonochontaug Brook inlet. Produced by PPLT AGIKS, Pocasset Pokanoket Land Trust.">
+<meta property="og:url" content="https://ryanpocasset.github.io/QuonochontaugPond/">
+<meta property="og:image" content="https://ryanpocasset.github.io/QuonochontaugPond/preview.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Map of Quonochontaug Pond showing water depth, eelgrass and monitoring sites">
+<meta name="twitter:card" content="summary_large_image">
+<title>Quonochontaug Pond · PPLT AGIKS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lib/leaflet.css">
+<style>
+/* Field-notebook layout: panel left, map right; Findings carry the analysis, each with Show on map. */
+:root{
+  --paper:#f2f4f0; --panel:#ffffff; --ink:#1c2620; --muted:#5a6a61; --rule:#d5dbd3; --grid:#e6ebe5; --accent:#2c6a4c; --accent-ink:#ffffff; --mapbg:#dfe4dc; --warn:#8a5a00; --water:#2b6f99;
+  --s1:#2a78d6; --s2:#eb6834; --era1:#86b6ef; --era2:#2a78d6; --era3:#104281; --neg:#2a78d6; --pos:#e34948;
+  --good:#0ca30c; --caution:#fab219; --bad:#d03b3b;
+  --f-display:"Newsreader",Georgia,"Times New Roman",serif;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){--paper:#121815;--panel:#18201c;--ink:#e2e9e4;--muted:#9aaba1;--rule:#2d3a33;--grid:#26312b;--accent:#7cc09b;--accent-ink:#0e1712;--mapbg:#1d2521;--warn:#e0b25c;--water:#7fb6dc;
+    --s1:#3987e5;--s2:#d95926;--era1:#184f95;--era2:#3987e5;--era3:#9ec5f4;--neg:#3987e5;--pos:#e66767;color-scheme:dark}
+}
+:root[data-theme="dark"]{--paper:#121815;--panel:#18201c;--ink:#e2e9e4;--muted:#9aaba1;--rule:#2d3a33;--grid:#26312b;--accent:#7cc09b;--accent-ink:#0e1712;--mapbg:#1d2521;--warn:#e0b25c;--water:#7fb6dc;
+  --s1:#3987e5;--s2:#d95926;--era1:#184f95;--era2:#3987e5;--era3:#9ec5f4;--neg:#3987e5;--pos:#e66767;color-scheme:dark}
+html,body{height:100%;margin:0}
+body{background:var(--paper);color:var(--ink);font:14px/1.45 var(--f-body)}
+.app{display:grid;grid-template-columns:430px 1fr;height:100%;position:relative}
+aside{background:var(--panel);border-right:1px solid var(--rule);overflow-y:auto;padding:16px 20px 28px;display:flex;flex-direction:column;gap:14px}
+h1{font:600 22px/1.15 var(--f-display);margin:0;text-wrap:balance}
+h2{font:600 16px/1.2 var(--f-display);margin:0 0 6px;letter-spacing:.01em;text-wrap:balance}
+h3{font:600 14px/1.25 var(--f-display);margin:0;text-wrap:balance}
+h4{font:600 12px/1.3 var(--f-body);margin:6px 0 2px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.sub{color:var(--muted);font-size:12.5px;margin-top:4px}
+section{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--rule);padding-top:12px}
+label{cursor:pointer}
+input[type=range]{width:100%}
+select:focus-visible,input:focus-visible,button:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ctl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button,.tabs button,.fsec button.sbtn{font:500 12.5px var(--f-body);padding:5px 9px;border-radius:999px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"],.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.sbtn[aria-pressed="true"]{background:var(--ink)!important;color:var(--panel)!important}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--rule);padding-bottom:10px}
+.tabs button{font-weight:600;padding:6px 12px}
+details.grp{border-top:1px solid var(--rule);padding-top:10px}
+details.grp>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+details.grp>summary::-webkit-details-marker{display:none}
+details.grp>summary h2{margin:0}
+details.grp>summary::after{content:"+";font:600 15px var(--f-body);color:var(--muted)}
+details.grp[open]>summary::after{content:"–"}
+.gdesc{font-size:12.5px;color:var(--muted);margin:6px 0 8px;max-width:65ch}
+.lay{display:flex;flex-direction:column;gap:3px;margin-bottom:6px}
+.lay>label{display:flex;gap:8px;align-items:flex-start;font-weight:600}
+.lay>label input{margin-top:3px}
+.legend{display:grid;grid-template-columns:14px 1fr;gap:3px 8px;margin:2px 0 4px 24px;font-size:12.5px;color:var(--muted)}
+.sw{width:14px;height:12px;border-radius:2px;margin-top:3px;border:1px solid rgba(0,0,0,.15)}
+.dot{width:10px;height:10px;border-radius:50%;margin:4px 2px 0;border:1.5px solid #222}
+.line{height:0;border-top:3px solid;margin-top:8px;width:14px}
+.ramp{grid-column:1/-1;height:10px;border-radius:3px;border:1px solid rgba(0,0,0,.15)}
+.rampl{grid-column:1/-1;display:flex;justify-content:space-between;font-size:11.5px;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:minmax(0,1fr) fit-content(52%);gap:3px 12px;font-size:13px}
+.stats .v{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.stats .h{grid-column:1/-1;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;margin-top:6px;font-weight:600}
+.note{font-size:12.5px;color:var(--muted)}
+.note p{margin:0 0 8px;max-width:68ch}
+.flag{border-left:3px solid var(--warn);padding:6px 10px;background:color-mix(in srgb,var(--warn) 9%,transparent);font-size:12.5px;border-radius:0 6px 6px 0}
+.credit{font-size:12.5px;color:var(--muted);margin-top:6px}
+.credit b{color:var(--ink);font-weight:650}
+.lead{font-size:14px;margin:0;max-width:68ch}
+.fsec{border-top:1px solid var(--rule);padding-top:14px;display:flex;flex-direction:column;gap:8px;scroll-margin-top:8px}
+.fsec p{margin:0;max-width:68ch;font-size:13.5px}
+.fsec .chip{display:inline-block;font:600 11px var(--f-body);padding:1px 7px;border-radius:999px;border:1px solid var(--rule);color:var(--muted);white-space:nowrap}
+.fsec button.sbtn{align-self:flex-start}
+.why{margin:0;padding-left:18px;font-size:13.5px;display:flex;flex-direction:column;gap:6px;max-width:68ch}
+.todo{list-style:none;margin:0;padding:0;font-size:13px;display:flex;flex-direction:column;gap:5px}
+.todo li{display:flex;gap:8px}
+.todo li::before{content:"";flex:0 0 12px;height:12px;border:1.5px solid var(--muted);border-radius:3px;margin-top:3px}
+.fig{margin:2px 0 0}
+.fig figcaption{font-size:12px;color:var(--muted);margin-bottom:4px}
+.fig svg{width:100%;height:auto;display:block;overflow:visible}
+.fig svg text{font-family:var(--f-body);fill:var(--muted);font-size:10.5px;font-variant-numeric:tabular-nums}
+.fig svg .lab{fill:var(--ink);font-size:11px;font-weight:600}
+.fig svg .gl{stroke:var(--grid);stroke-width:1}
+.fig svg .ax{stroke:var(--rule);stroke-width:1}
+.fig svg .ref{stroke:var(--muted);stroke-width:1}
+.leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;color:var(--muted);margin:2px 0 4px}
+.leg span{display:inline-flex;align-items:center;gap:5px}
+.leg i{display:inline-block;width:14px;height:0;border-top:2.5px solid}
+.leg b{display:inline-block;width:10px;height:10px;border-radius:2px}
+.leg em{font-style:normal;font-weight:700;width:12px;text-align:center}
+details.dv{font-size:12px;color:var(--muted)}
+details.dv>summary{cursor:pointer;font-weight:600}
+table.t{border-collapse:collapse;font-size:12px;width:100%;font-variant-numeric:tabular-nums;margin-top:4px}
+table.t th,table.t td{padding:3px 5px;border-bottom:1px solid var(--rule);text-align:right;vertical-align:top}
+table.t th:first-child,table.t td:first-child{text-align:left}
+table.t th{font-weight:600;color:var(--muted);font-size:11px;line-height:1.25}
+table.t tr.br td{color:var(--water)}
+.segbar{display:flex;gap:2px;height:28px;margin:4px 0 2px}
+.segbar div{border-radius:4px;display:flex;align-items:center;padding-left:6px;font:600 11px var(--f-body);white-space:nowrap;overflow:visible;min-width:0}
+.src{margin:0;padding-left:18px;font-size:12.5px;display:flex;flex-direction:column;gap:4px}
+.src a{color:var(--water)}
+#tt{position:fixed;z-index:3000;pointer-events:none;background:var(--panel);color:var(--ink);border:1px solid var(--rule);border-radius:6px;padding:6px 8px;font-size:12px;box-shadow:0 2px 10px rgba(0,0,0,.18);max-width:240px;display:none;font-variant-numeric:tabular-nums}
+#tt b{font-weight:600}
+#map{height:100%;background:var(--mapbg)}
+#mapwrap{position:relative;height:100%;min-width:0}
+.maptools{position:absolute;top:10px;left:52px;z-index:1200;display:flex;gap:6px}
+.maptools button{font:600 12.5px var(--f-body);padding:6px 10px;border-radius:6px;border:1px solid rgba(0,0,0,.3);background:#fff;color:#1c2620;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.25)}
+.app.collapsed{grid-template-columns:1fr}
+.app.collapsed aside{display:none}
+.leaflet-container{font:13px var(--f-body);background:var(--mapbg)}
+.leaflet-popup-content{margin:10px 12px;min-width:240px;max-width:330px}
+.pp h3{font:600 14px var(--f-display);margin:0 0 4px;color:#1c2620}
+.pp p{margin:0 0 6px;font-size:12.5px;color:#1c2620}
+.pp table{border-collapse:collapse;font-size:12px;color:#1c2620}
+.pp td{padding:1px 6px 1px 0;vertical-align:top}
+.pp td:first-child{color:#5a6a61;white-space:nowrap;padding-right:10px}
+.plabel{font:600 11px var(--f-body);color:#1c2620;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff;white-space:nowrap}
+.clab{font:600 10.5px var(--f-body);color:#0d366b;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 2px #fff;white-space:nowrap}
+.mlab{background:rgba(255,253,245,.94);border:1px solid #1c2620;border-radius:3px;font:600 11px var(--f-body);color:#1c2620;padding:1px 5px;white-space:nowrap}
+@media (max-width:820px){
+  .app,.app.collapsed{grid-template-columns:1fr}
+  aside{position:absolute;z-index:1100;top:0;left:0;bottom:0;width:min(430px,92vw);box-shadow:4px 0 18px rgba(0,0,0,.25)}
+  #mapwrap{grid-column:1}
+  .app:not(.collapsed) .maptools{position:fixed;left:auto;right:8px;top:8px}
+  aside header{padding-right:96px}
+}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside id="side">
+  <header>
+    <h1>Quonochontaug Pond: water, algae, depth and shoreline</h1>
+    <div class="sub">Pond water testing 2006–2024 (URI Watershed Watch with the Salt Ponds Coalition), Landsat surface temperature 1984–2026, NOAA NCEI bathymetry, NRCS subaqueous soils, and RIGIS eelgrass and shoreline mapping. Base image: NAIP, 3 August 2025.</div>
+    <div class="credit">Produced by <b>PPLT AGIKS</b>, Pocasset Pokanoket Land Trust</div>
+  </header>
+  <nav class="tabs" role="tablist" aria-label="Panel sections">
+    <button type="button" role="tab" id="tb-map" aria-selected="true" aria-controls="tab-map">Map</button>
+    <button type="button" role="tab" id="tb-findings" aria-selected="false" aria-controls="tab-findings">Findings</button>
+    <button type="button" role="tab" id="tb-sources" aria-selected="false" aria-controls="tab-sources">Sources</button>
+  </nav>
+
+  <div id="tab-map" role="tabpanel" aria-labelledby="tb-map" style="display:flex;flex-direction:column;gap:14px">
+    <section aria-labelledby="h-glance">
+      <h2 id="h-glance">The pond at a glance</h2>
+      <div class="stats" id="glance"></div>
+      <div class="note"><p>Click anywhere on the water for its depth and its summer and winter temperature offset.</p></div>
+    </section>
+    <section aria-labelledby="h-base">
+      <h2 id="h-base">Imagery</h2>
+      <div class="seg" role="group" aria-label="Base map" id="basemap"></div>
+      <label for="op" class="note">Fill opacity for mapped areas</label>
+      <input type="range" id="op" min="0" max="100" value="60">
+    </section>
+    <div id="groups"></div>
+  </div>
+
+  <div id="tab-findings" role="tabpanel" aria-labelledby="tb-findings" hidden style="flex-direction:column;gap:12px">
+    <p class="lead" id="lead"></p>
+    <div id="findings"></div>
+  </div>
+
+  <div id="tab-sources" role="tabpanel" aria-labelledby="tb-sources" hidden style="flex-direction:column;gap:12px">
+    <div id="sources"></div>
+  </div>
+</aside>
+<div id="mapwrap"><div id="map" role="region" aria-label="Map of Quonochontaug Pond"></div><div class="maptools"><button id="tgl" type="button" aria-controls="side" aria-expanded="true">Hide panel</button></div></div>
+</div>
+<div id="tt" role="tooltip"></div>
+<script src="lib/leaflet.js"></script>
+<script src="data.js"></script>
+<script>
+(function(){
+const Q=window.QP, C=Q.C;
+const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const f1=v=>v==null||isNaN(v)?'—':(Math.round(v*10)/10).toFixed(1);
+const f2=v=>v==null||isNaN(v)?'—':(Math.round(v*100)/100).toLocaleString();
+const f0=v=>v==null||isNaN(v)?'—':Math.round(v).toLocaleString();
+const pct=v=>v==null||isNaN(v)?'—':Math.round(v*100)+'%';
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const doyDate=d=>{const t=new Date(Date.UTC(2023,0,d));return t.getUTCDate()+' '+MON[t.getUTCMonth()];};
+const doyLong=d=>{const t=new Date(Date.UTC(2023,0,d));return t.getUTCDate()+' '+MONL[t.getUTCMonth()];};
+
+/* ---------- map ---------- */
+const map=L.map('map',{preferCanvas:true,zoomSnap:0.25,maxZoom:19,minZoom:12.5});
+const canvas=L.canvas({padding:0.5,tolerance:6});
+map.attributionControl.setPrefix(false).addAttribution('USDA NAIP 2025 · NOAA NCEI · USGS Landsat · URIWW / SPC · RIGIS · NRCS');
+[['pBase',150],['pTile',160],['pRaster',300]].forEach(([n,z])=>{const p=map.createPane(n);p.style.zIndex=z;p.style.pointerEvents='none';});
+let OP=0.6;
+const app=document.querySelector('.app'),tgl=document.getElementById('tgl');
+function setPanel(open){app.classList.toggle('collapsed',!open);tgl.setAttribute('aria-expanded',String(open));tgl.textContent=open?'Hide panel':'Layers & findings';setTimeout(()=>map.invalidateSize(),50);}
+tgl.addEventListener('click',()=>setPanel(app.classList.contains('collapsed')));
+setPanel(!window.matchMedia('(max-width:820px)').matches);
+
+/* tabs */
+const TABS=['map','findings','sources'];
+function setTab(t){TABS.forEach(k=>{const b=document.getElementById('tb-'+k),p=document.getElementById('tab-'+k);const on=k===t;b.setAttribute('aria-selected',on);p.hidden=!on;p.style.display=on?'flex':'none';});}
+TABS.forEach(k=>document.getElementById('tb-'+k).addEventListener('click',()=>{setTab(k);try{history.replaceState(null,'','#'+k);}catch(e){}}));
+
+/* base imagery: overview always, 1.2 m tiles from zoom 15 */
+const B=Q.base||{};let curBase='naip';const cache={};
+function ovl(k,e,pane){if(!cache[k])cache[k]=L.imageOverlay(e.f,e.b,{interactive:false,pane});return cache[k];}
+function refreshBase(){const want=new Set(),z=map.getZoom(),vb=map.getBounds().pad(0.2);
+  if(curBase==='naip'){want.add('ov');if(z>=15)B.tiles.forEach((t,i)=>{if(vb.intersects(L.latLngBounds(t.b)))want.add('t'+i);});}
+  for(const k in cache)if(!want.has(k)&&map.hasLayer(cache[k]))map.removeLayer(cache[k]);
+  want.forEach(k=>{const l=k==='ov'?ovl(k,B.overview,'pBase'):ovl(k,B.tiles[+k.slice(1)],'pTile');if(!map.hasLayer(l))l.addTo(map);});}
+map.on('moveend zoomend',refreshBase);
+const bmEl=document.getElementById('basemap');
+[['naip','NAIP · Aug 2025'],['none','None']].forEach(([k,lab])=>{const b=document.createElement('button');b.type='button';b.textContent=lab;b.setAttribute('aria-pressed',k===curBase);
+  b.addEventListener('click',()=>{curBase=k;[...bmEl.children].forEach(x=>x.setAttribute('aria-pressed',x===b));refreshBase();});bmEl.appendChild(b);});
+
+/* click-to-query grids */
+const G=Q.grid;function dec(b64,T){const s=atob(b64),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return new T(u.buffer);}
+const GD=dec(G.depth,Int16Array),GS=dec(G.su,Int8Array),GW=dec(G.wi,Int8Array);
+function nearest(A,nul,r0,c0){for(let k=0;k<=3;k++){let best=null,bd=1e9;for(let dr=-k;dr<=k;dr++)for(let dc=-k;dc<=k;dc++){const r=r0+dr,c=c0+dc;if(r<0||c<0||r>=G.ny||c>=G.nx)continue;const v=A[r*G.nx+c];if(v===nul)continue;const d=dr*dr+dc*dc;if(d<bd){bd=d;best=v;}}if(best!==null)return best;}return null;}
+function gridAt(ll){const c=Math.floor((ll.lng-G.w)/G.d),r=Math.floor((G.n-ll.lat)/G.d);if(c<-3||r<-3||c>=G.nx+3||r>=G.ny+3)return null;
+  const d=nearest(GD,-32768,r,c),su=nearest(GS,-128,r,c),wi=nearest(GW,-128,r,c);return {depth:d==null?null:d/100,su:su==null?null:su/20,wi:wi==null?null:wi/20};}
+
+/* helpers */
+function tbl(rows){return '<table>'+rows.filter(r=>r&&r[1]!==''&&r[1]!=null).map(([a,b])=>`<tr><td>${a}</td><td>${b}</td></tr>`).join('')+'</table>';}
+function pp(t,lead,rows,foot){return `<div class="pp"><h3>${t}</h3>${lead?`<p>${lead}</p>`:''}${rows?tbl(rows):''}${foot?`<p style="margin-top:6px">${foot}</p>`:''}</div>`;}
+const LAY={},fillKeys=new Set();
+
+/* pond outline (bottom-most interactive layer: click = depth + temperature) */
+const BASIN_BY={};
+LAY.pond=L.geoJSON(Q.pond,{renderer:canvas,style:{color:'#ffffff',weight:1.4,opacity:0.9,fillOpacity:0.001},
+  onEachFeature:(f,l)=>l.on('click',e=>{const g=gridAt(e.latlng);const b=basinAt(e.latlng);const p=f.properties;
+    L.popup({maxWidth:340}).setLatLng(e.latlng).setContent(pp('Quonochontaug Pond'+(b?' · '+esc(b.name):''),'',[['Depth',g&&g.depth!=null?f1(Math.max(0,g.depth))+' m · '+f1(Math.max(0,g.depth)*3.281)+' ft':'—'],['Summer offset',g&&g.su!=null?(g.su>0?'+':'')+f1(g.su)+' °C vs interior, Jul–Aug':'masked near shore'],['Winter offset',g&&g.wi!=null?(g.wi>0?'+':'')+f1(g.wi)+' °C vs interior, Dec–Mar':'masked near shore'],['Water class',p.cls+' · '+p.wbid],['2022 report','Category '+p.cat+', no impairments'],['Shellfishing','Approved (GA11QW, 2024)']],'Depth: NOAA model, below NAVD88 (within about 0.1 m of mean pond level). Offsets: Landsat 1984–2026; thermal pixels are 100–120 m.')).openOn(map);})});
+LAY.pond.addTo(map);
+function inPoly(ll,geom){const x=ll.lng,y=ll.lat;const polys=geom.type==='Polygon'?[geom.coordinates]:geom.coordinates;
+  for(const P of polys){let inside=false;for(const ring of P.slice(0,1)){for(let i=0,j=ring.length-1;i<ring.length;j=i++){const xi=ring[i][0],yi=ring[i][1],xj=ring[j][0],yj=ring[j][1];if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))inside=!inside;}}if(inside)return true;}return false;}
+function basinAt(ll){for(const f of Q.basins.features)if(inPoly(ll,f.geometry))return f.properties;return null;}
+
+/* depth raster + contours */
+const DB=[[41.327154339231896,-71.75211425057496],[41.35278344977464,-71.70770509763837]];
+const LB=[[41.32595094276566,-71.75475161748753],[41.35409947536396,-71.70491483075615]];
+LAY.depth=L.imageOverlay('img/depth.webp',DB,{pane:'pRaster',opacity:0.8,interactive:false});
+LAY.contours=L.geoJSON(Q.contours,{renderer:canvas,interactive:false,style:f=>({color:'#ffffff',weight:f.properties.d%2===0?1.6:1,opacity:0.85})});
+const clab=L.layerGroup();
+(()=>{const best={};Q.contours.features.forEach(f=>{const c=f.geometry.coordinates;let len=0;for(let i=1;i<c.length;i++)len+=Math.hypot(c[i][0]-c[i-1][0],c[i][1]-c[i-1][1]);const k=f.properties.d;(best[k]=best[k]||[]).push({len,c});});
+  for(const k in best){best[k].sort((a,b)=>b.len-a.len).slice(0,2).forEach(o=>{const m=o.c[Math.floor(o.c.length*0.35)];clab.addLayer(L.marker([m[1],m[0]],{interactive:false,keyboard:false,icon:L.divIcon({className:'clab',html:k+' m',iconSize:null})}));});}})();
+function clabs(){(map.hasLayer(LAY.contours)&&map.getZoom()>=14.5)?clab.addTo(map):map.removeLayer(clab);}
+map.on('zoomend',clabs);
+
+/* bottom landform */
+const LU={basin:['#2a78d6','Lagoon basin: soft mud (fluid silt)'],delta:['#eda100','Flood-tidal delta: sand'],terrace:['#6250d6','Mainland terrace: bouldery till'],washover:['#eb6834','Washover fan: sand behind the barrier'],channel:['#1baf7a','Channels and coves']};
+LAY.subaq=L.geoJSON(Q.subaq,{renderer:canvas,style:f=>({fillColor:LU[f.properties.lu][0],color:'rgba(0,0,0,.35)',weight:0.6,fillOpacity:OP}),
+  onEachFeature:(f,l)=>{const o=f.properties;l.bindPopup(()=>pp(esc(o.mu),esc(o.land)+'.',[['Bottom',esc(o.bottom)],['CMECS substrate',esc(o.cmecs)],['Eelgrass restoration',esc(o.eel)],['Oyster habitat',esc(o.oys)],['Aquaculture',esc(o.aqua)],['Carbon pool',esc(o.carbon)],['Area in the pond',f1(o.acres)+' ac']],'NRCS subaqueous soil survey (RIGIS). Depth classes in the soil names are NRCS’s.'));}});fillKeys.add('subaq');
+
+/* eelgrass */
+const EEL={2012:'#c6efc4',2016:'#7fd38c',2021:'#1f9e5a'};
+[2012,2016,2021].forEach(y=>{LAY['eel'+y]=L.geoJSON(Q.eel[y],{renderer:canvas,style:{fillColor:EEL[y],color:y===2021?'#0b5d33':'#2f6f3e',weight:y===2021?1.2:1.6,dashArray:y===2021?null:'4 3',fillOpacity:y===2021?OP:OP*0.5},
+  onEachFeature:(f,l)=>l.bindPopup(()=>{const e=C.eel[y];return pp('Eelgrass, '+y,'RIGIS eelgrass mapping for Quonochontaug Pond.',[['Mapped area',f1(f.properties.acres)+' ac'],['Depth of the beds (NOAA model)',e?f1(e.p10)+'–'+f1(e.p90)+' m (middle 80%), median '+f1(e.p50)+' m':'']]);})});fillKeys.add('eel'+y);});
+
+/* shoreline type */
+const SH={marsh:['#1baf7a','Marsh edge'],natural:['#eda100','Natural beach or bank'],riprap:['#6250d6','Rip-rap'],bulkhead:['#e34948','Bulkhead or seawall'],jetty:['#2a78d6','Jetty or ramp']};
+LAY.cusp=L.geoJSON(Q.cusp,{renderer:canvas,style:f=>({color:SH[f.properties.t][0],weight:f.properties.t==='marsh'||f.properties.t==='natural'?3:4.5,opacity:0.95}),
+  onEachFeature:(f,l)=>l.bindPopup(()=>pp('Shoreline: '+SH[f.properties.t][1],'NOAA Continually Updated Shoreline Product, 2022 release (RIGIS).',[['NOAA attribute',esc(f.properties.attr)],['Source date',esc(f.properties.src)]]))});
+const HB={marsh:['#008300','Salt and brackish marsh'],phrag:['#e87ba4','Phragmites marsh'],flats:['#2a78d6','Tidal flats, pannes and pools'],beach:['#eda100','Beach and dune'],rocky:['#6250d6','Rocky shore']};
+LAY.habitat=L.geoJSON(Q.habitat,{renderer:canvas,style:f=>({fillColor:HB[f.properties.h][0],color:'rgba(0,0,0,.3)',weight:0.5,fillOpacity:OP}),
+  onEachFeature:(f,l)=>l.bindPopup(()=>pp(HB[f.properties.h][1],esc(f.properties.cls)+' (code '+esc(f.properties.code)+').',[['Area',f2(f.properties.acres)+' ac']],'South Coast estuarine habitat map (RIGIS).'))});fillKeys.add('habitat');
+const BAR={undeveloped:['rgba(255,255,255,.0)','#ffffff','Undeveloped'],'moderately developed':['#eda100','#8a5a00','Moderately developed'],developed:['#e34948','#8e1f1f','Developed']};
+LAY.barriers=L.geoJSON(Q.barriers,{renderer:canvas,style:f=>{const b=BAR[f.properties.type]||BAR.developed;return {fillColor:b[0],color:b[1],weight:1.6,dashArray:f.properties.type==='undeveloped'?'5 4':null,fillOpacity:f.properties.type==='undeveloped'?0.05:OP*0.6};},
+  onEachFeature:(f,l)=>l.bindPopup(()=>pp('Coastal barrier: '+(BAR[f.properties.type]||[0,0,f.properties.type])[2],'',[['Town',esc(f.properties.town)]],'RIGIS coastal barriers (CRMC classes).'))});fillKeys.add('barriers');
+
+/* monitoring */
+const siteRows=o=>{const m=o.m||{};return [['Years',esc(o.active)+(o.status?' · '+esc(o.status):'')],['Chlorophyll a median (90th pct)',m.chl_med!=null?f1(m.chl_med)+' ('+f1(m.chl_p90)+') µg/L':''],['Dissolved oxygen, lowest',m.do_min!=null?f1(m.do_min)+' mg/L · '+pct(m.do_lt48)+' of readings below 4.8':''],['Total nitrogen, median',m.tn_med!=null?f2(m.tn_med)+' mg/L':''],['Nitrate + nitrite, median',m.no3_med!=null?(m.no3_med<0.1?m.no3_med.toFixed(3):f2(m.no3_med))+' mg/L':''],['Total phosphorus, median',m.tp_med!=null?f0(m.tp_med)+' µg/L':''],['Salinity, median',m.sal_med!=null?f1(m.sal_med)+' ppt':''],['Secchi depth, median',m.secchi_med!=null?f1(m.secchi_med)+' m':''],['Water temperature, Jul–Aug median',m.temp_julaug_med!=null?f1(m.temp_julaug_med)+' °C (max '+f1(m.temp_max)+')':''],['Enterococci, geometric mean',m.ent_gm!=null?f0(m.ent_gm)+' MPN/100 mL · '+pct(m.ent_gt104)+' over 104':''],['Bottom depth at site, median',m.bottom_med!=null?f1(m.bottom_med)+' m':'']];};
+LAY.sites=L.geoJSON(Q.sites,{pointToLayer:(f,ll)=>{const o=f.properties;
+    if(o.type==='epa')return L.marker(ll,{icon:L.divIcon({className:'',html:'<div style="width:11px;height:11px;background:#5a6a61;border:2px solid #fff;transform:rotate(45deg);box-shadow:0 0 0 1px #5a6a61"></div>',iconSize:[11,11],iconAnchor:[6,6]})});
+    const brook=/Stream/.test(o.type||''),active=o.status==='Active';
+    return L.circleMarker(ll,{renderer:canvas,radius:brook?6:(active?6.5:4.5),color:'#ffffff',weight:2,fillColor:brook?'#00a6d6':(active?'#2a78d6':'#9fb6c9'),fillOpacity:1});},
+  onEachFeature:(f,l)=>{const o=f.properties;l.bindPopup(()=>o.type==='epa'?pp(esc(o.name),esc(o.id)+'.',[['Results',esc(o.epa)]],'EPA Water Quality Portal.'):pp(esc(o.name),'URI Watershed Watch site '+esc(o.id)+' (Salt Pond Watchers).',siteRows(o),o.id==='WW477'?'This is Quonochontaug Brook at its mouth in Harmonic Cove, sampled monthly May–October 2009–2013.':''));
+    l.bindTooltip(esc(o.id==='WW477'?'Brook mouth (WW477)':o.name.replace('Quonochontaug Pond - ','')),{direction:'top',offset:[0,-6]});}});
+LAY.basins=L.geoJSON(Q.basins,{renderer:canvas,style:{color:'#ffffff',weight:1.8,dashArray:'6 5',fill:true,fillOpacity:0.001,opacity:0.9},
+  onEachFeature:(f,l)=>{const o=f.properties;l.bindPopup(()=>pp(esc(o.name),'Analysis unit used for the Landsat temperature statistics.',[['Area',f1(o.acres)+' ac'],['Mean / deepest depth',f1(o.mean_depth)+' / '+f1(o.max_depth)+' m'],['Jul–Aug surface vs interior',o.summer_dt!=null?(o.summer_dt>0?'+':'')+f2(o.summer_dt)+' °C':''],['Dec–Mar surface vs interior',o.winter_dt!=null?(o.winter_dt>0?'+':'')+f2(o.winter_dt)+' °C':''],['Monitoring sites',o.sites.join(', ')]]));}});
+LAY.access=L.geoJSON(Q.access,{pointToLayer:(f,ll)=>L.marker(ll,{icon:L.divIcon({className:'',html:'<div style="width:12px;height:12px;background:#1c2620;border:2px solid #fff;border-radius:3px"></div>',iconSize:[12,12],iconAnchor:[6,6]})}),onEachFeature:(f,l)=>l.bindPopup(pp(esc(f.properties.name),esc(f.properties.type)+'.',null,'RIDEM fishing and boating access (RIGIS 2024).'))});
+
+/* temperature patterns */
+LAY.lsts=L.imageOverlay('img/lst_summer.webp',LB,{pane:'pRaster',opacity:0.9,interactive:false});
+LAY.lstw=L.imageOverlay('img/lst_winter.webp',LB,{pane:'pRaster',opacity:0.9,interactive:false});
+
+
+/* ---------- layer panel ---------- */
+const sw=c=>`<span class="sw" style="background:${c}"></span>`,dt=c=>`<span class="dot" style="background:${c}"></span>`,ln=c=>`<span class="line" style="border-color:${c}"></span>`;
+const lnw=(dash)=>`<span class="line" style="border-color:#ffffff;border-top-style:${dash?'dashed':'solid'};outline:1px solid #8a9690"></span>`;
+const ramp=(cols,lo,hi,mid)=>[[`<span class="rampl"><span>${lo}</span>${mid?`<span>${mid}</span>`:''}<span>${hi}</span></span>`,`<span class="ramp" style="background:linear-gradient(90deg,${cols.join(',')})"></span>`]];
+const DEPRAMP=['#cde2fb','#9ec5f4','#6da7ec','#3987e5','#256abf','#184f95','#0d366b'];
+const DIV=['#104281','#5598e7','#f0efec','#e66767','#a5262a'];
+const GROUPS=[
+ {id:'g-floor',title:'Pond floor',open:true,desc:'Depth from NOAA’s 2018 topobathy model (1/9 arc-second, NAVD88). Bottom landforms from the NRCS subaqueous soil survey. Eelgrass from RIGIS mapping of 2012, 2016 and 2021.',
+  items:[['depth','Water depth',true,ramp(DEPRAMP,'0 m','5 m','2.5 m')],['contours','Depth contours, 1 m',true,[['White lines at 1, 2, 3 and 4 m',lnw(false)]]],
+   ['subaq','Bottom landform and substrate',false,Object.keys(LU).map(k=>[LU[k][1],sw(LU[k][0])])],
+   ['eel2021','Eelgrass 2021',true,[['50.5 acres',sw(EEL[2021])]]],['eel2016','Eelgrass 2016',false,[['33.5 acres (dashed outline)',sw(EEL[2016])]]],['eel2012','Eelgrass 2012',false,[['70.6 acres (dashed outline)',sw(EEL[2012])]]]]},
+ {id:'g-shore',title:'Shoreline',open:false,desc:'Shoreline type from NOAA’s 2022 shoreline product; shore habitat from the South Coast estuarine habitat map; barrier development class from RIGIS.',
+  items:[['cusp','Shoreline type (NOAA 2022)',false,Object.keys(SH).map(k=>[SH[k][1],ln(SH[k][0])])],
+   ['habitat','Shore and intertidal habitat',false,Object.keys(HB).map(k=>[HB[k][1],sw(HB[k][0])])],
+   ['barriers','Barrier beach development',false,[['Developed',sw('#e34948')],['Moderately developed',sw('#eda100')],['Undeveloped (dashed)',lnw(true)]]],
+   ['access','Boat ramp and fishing access',false,[['RIDEM access site',sw('#1c2620')]]]]},
+ {id:'g-water',title:'Water testing',open:true,desc:'Salt Pond Watchers sites, sampled every two weeks May–October by Salt Ponds Coalition volunteers and analyzed by URI Watershed Watch. Click a site for its 2006–2024 numbers.',
+  items:[['sites','Monitoring sites',true,[['Active pond site',dt('#2a78d6')],['Former pond site',dt('#9fb6c9')],['Brook site (former)',dt('#00a6d6')],['EPA survey site',sw('#5a6a61')]]],
+   ['basins','Analysis basins',false,[['Basin outline (dashed)',lnw(true)]]]]},
+ {id:'g-temp',title:'Surface temperature (Landsat)',open:false,desc:'Average difference from the open-water interior on the same image, 1984–2026. Shoreline pixels are masked; thermal pixels are 100–120 m, so treat the edges with care.',
+  items:[['lsts','Summer pattern, July–August (121 scenes)',false,ramp(DIV,'−2 °C','+2 °C','0').concat([['Within 60 m of shore: masked',sw('#969696')]])],['lstw','Winter pattern, December–March (204 scenes)',false,ramp(DIV,'−2 °C','+2 °C','0').concat([['Within 60 m of shore: masked',sw('#969696')]])]]}];
+const ORDER=['habitat','subaq','barriers','eel2012','eel2016','eel2021','basins','contours','cusp','sites','access'];
+function restack(){ORDER.forEach(k=>{if(LAY[k]&&map.hasLayer(LAY[k])&&LAY[k].bringToFront)LAY[k].bringToFront();});clabs();}
+const add=k=>{LAY[k].addTo(map);},rem=k=>{map.removeLayer(LAY[k]);};
+const checks={};let active=null;
+const gEl=document.getElementById('groups');
+GROUPS.forEach(g=>{const det=document.createElement('details');det.className='grp';if(g.open)det.open=true;
+  det.innerHTML=`<summary><h2>${g.title}</h2></summary><p class="gdesc">${g.desc}</p>`;
+  g.items.forEach(([k,lab,on,leg])=>{const d=document.createElement('div');d.className='lay';const id='chk-'+k;
+    d.innerHTML=`<label for="${id}"><input type="checkbox" id="${id}" ${on?'checked':''}> <span>${lab}</span></label>`+(leg?`<div class="legend">${leg.map(([t,s])=>t.startsWith('<span class="rampl"')?s+t:s+`<span>${t}</span>`).join('')}</div>`:'');
+    det.appendChild(d);const c=d.querySelector('input');checks[k]=c;if(on)add(k);
+    c.addEventListener('change',()=>{c.checked?add(k):rem(k);if(active)active.added=active.added.filter(x=>x!==k);restack();});});
+  gEl.appendChild(det);});
+document.getElementById('op').addEventListener('input',e=>{OP=e.target.value/100;fillKeys.forEach(k=>{LAY[k].eachLayer(l=>{if(!l.setStyle)return;const y=k.startsWith('eel')?+k.slice(3):0;l.setStyle({fillOpacity:k==='barriers'?OP*0.6:(y&&y!==2021?OP*0.5:OP)});});});});
+map.fitBounds(L.geoJSON(Q.pond).getBounds(),{padding:[16,16]});refreshBase();restack();
+L.control.scale({imperial:true,metric:true}).addTo(map);
+
+/* glance */
+const bs=C.bathy;
+const gl=[['h','Size and depth'],['Area (RIDEM)','768.8 ac'],['Mean depth (NOAA model)',f1(bs.mean_depth)+' m · '+f1(bs.mean_depth*3.281)+' ft'],['Deepest point',f1(bs.max_depth)+' m · '+f1(bs.max_depth*3.281)+' ft'],['Volume','≈'+f1(bs.volume_m3/1e6)+' million m³'],['Shallower than 1 m','28% of the pond'],
+ ['h','Water (Salt Pond Watchers, 2006–2024)'],['Salinity, median','33.4 ppt'],['Chlorophyll a, median (90th pct)','3.6 (7.9) µg/L'],['Chlorophyll a 2020–2024','4.4 (10.0) µg/L'],['Summer Secchi depth 2020–2024','2.0 m'],
+ ['h','Status'],['RIDEM water class','SA'],['2022 Integrated Report','Category 2, no impairments'],['Shellfishing (2024)','Approved'],['Eelgrass, 2021','50.5 ac']];
+document.getElementById('glance').innerHTML=gl.map(([a,b])=>a==='h'?`<div class="h">${b}</div>`:`<div>${a}</div><div class="v">${b}</div>`).join('');
+
+/* ---------- charts ---------- */
+const NS='http://www.w3.org/2000/svg';
+function E(tag,a,p){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;}
+const tt=document.getElementById('tt');
+function tip(html,ev){tt.innerHTML=html;tt.style.display='block';const x=ev.clientX+14,y=ev.clientY+14;const r=tt.getBoundingClientRect();tt.style.left=Math.min(x,window.innerWidth-r.width-8)+'px';tt.style.top=Math.min(y,window.innerHeight-r.height-8)+'px';}
+function untip(){tt.style.display='none';}
+function frame(host,W,H,m){const svg=E('svg',{viewBox:`0 0 ${W} ${H}`,role:'img'},host);const g=E('g',{transform:`translate(${m.l},${m.t})`},svg);return {svg,g,w:W-m.l-m.r,h:H-m.t-m.b};}
+function yAxis(g,Y,ticks,w,fmt,unit){ticks.forEach(t=>{const y=Y(t);E('line',{x1:0,x2:w,y1:y,y2:y,class:'gl'},g);const tx=E('text',{x:-6,y:y+3.5,'text-anchor':'end'},g);tx.textContent=fmt?fmt(t):t;});if(unit){const u=E('text',{x:-6,y:-12,'text-anchor':'end'},g);u.textContent=unit;}}
+function linePath(pts,X,Y){return pts.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join('');}
+function figure(parent,cap,id){const f=document.createElement('figure');f.className='fig';if(id)f.id=id;f.innerHTML=cap?`<figcaption>${cap}</figcaption>`:'';parent.appendChild(f);return f;}
+function dataTable(parent,head,rows){const d=document.createElement('details');d.className='dv';d.innerHTML=`<summary>Values</summary><table class="t"><thead><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;parent.appendChild(d);}
+function legend(parent,items){const d=document.createElement('div');d.className='leg';d.innerHTML=items.map(([t,c,kind])=>`<span>${kind==='box'?`<b style="background:${c}"></b>`:kind&&kind.icon?`<em style="color:${c}">${kind.icon}</em>`:`<i style="border-color:${c}"></i>`}${t}</span>`).join('');parent.appendChild(d);return d;}
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* A1: chlorophyll by month — point + p10–p90 whisker */
+function chartChlMonth(host){const W=390,H=196,m={t:24,r:62,b:24,l:34};const {g,w,h}=frame(host,W,H,m);
+  const xs=C.chl_month.map(d=>d.m);const X=i=>(i+0.5)*w/xs.length;const Y=v=>h-v/12*h;
+  yAxis(g,Y,[0,3,6,9,12],w,null,'µg/L');
+  const ry=Y(5);E('line',{x1:0,x2:w,y1:ry,y2:ry,class:'ref'},g);const rt=E('text',{x:w+6,y:ry-2},g);rt.textContent='5 µg/L:';const rt2=E('text',{x:w+6,y:ry+10},g);rt2.textContent='NOAA';const rt3=E('text',{x:w+6,y:ry+22},g);rt3.textContent='“medium”';
+  C.chl_month.forEach((d,i)=>{const x=X(i);E('line',{x1:x,x2:x,y1:Y(d.p10),y2:Y(d.p90),stroke:'var(--s1)','stroke-width':2,'stroke-linecap':'round'},g);
+    E('circle',{cx:x,cy:Y(d.med),r:5,fill:'var(--s1)',stroke:'var(--panel)','stroke-width':2},g);
+    const t=E('text',{x,y:h+15,'text-anchor':'middle'},g);t.textContent=MON[d.m-1];
+    const hit=E('rect',{x:x-20,y:0,width:40,height:h,fill:'transparent'},g);
+    hit.addEventListener('pointermove',ev=>tip(`<b>${MON[d.m-1]}</b><br>Median ${f1(d.med)} µg/L<br>10th–90th pct ${f1(d.p10)}–${f1(d.p90)}<br>${d.n} samples`,ev));hit.addEventListener('pointerleave',untip);});
+  const mx=C.chl_month.reduce((a,b)=>b.med>a.med?b:a);const lt=E('text',{x:X(C.chl_month.indexOf(mx))+8,y:Y(mx.med)-7,class:'lab'},g);lt.textContent=f1(mx.med);
+}
+/* A2: annual median and 90th percentile */
+function chartChlYear(host){const W=390,H=206,m={t:24,r:40,b:24,l:34};const {g,w,h}=frame(host,W,H,m);
+  const D=C.chl_year;const x0=D[0].y,x1=D[D.length-1].y;const X=y=>(y-x0)/(x1-x0)*w;const Y=v=>h-v/16*h;
+  yAxis(g,Y,[0,4,8,12,16],w,null,'µg/L');
+  [2008,2012,2016,2020,2024].forEach(y=>{const t=E('text',{x:X(y),y:h+15,'text-anchor':'middle'},g);t.textContent=y;});
+  const ser=[['p90','var(--s2)','90th percentile'],['med','var(--s1)','Median']];
+  ser.forEach(([k,c])=>{E('path',{d:linePath(D.map(d=>[d.y,d[k]]),X,Y),fill:'none',stroke:c,'stroke-width':2,'stroke-linejoin':'round','stroke-linecap':'round'},g);
+    const l=D[D.length-1];E('circle',{cx:X(l.y),cy:Y(l[k]),r:4,fill:c,stroke:'var(--panel)','stroke-width':2},g);
+    const t=E('text',{x:X(l.y)+7,y:Y(l[k])+4,class:'lab'},g);t.textContent=f1(l[k]);});
+  const pk=D.reduce((a,b)=>b.p90>a.p90?b:a);E('circle',{cx:X(pk.y),cy:Y(pk.p90),r:4,fill:'var(--s2)',stroke:'var(--panel)','stroke-width':2},g);const pt=E('text',{x:X(pk.y),y:Y(pk.p90)-8,'text-anchor':'middle',class:'lab'},g);pt.textContent=pk.y+': '+f1(pk.p90);
+  const cross=E('line',{y1:0,y2:h,class:'ax',visibility:'hidden'},g);
+  const ov=E('rect',{x:0,y:0,width:w,height:h,fill:'transparent'},g);
+  ov.addEventListener('pointermove',ev=>{const r=ov.getBoundingClientRect();const yr=Math.round(x0+(ev.clientX-r.left)/r.width*(x1-x0));const d=D.find(q=>q.y===yr);if(!d)return;cross.setAttribute('x1',X(yr));cross.setAttribute('x2',X(yr));cross.setAttribute('visibility','visible');
+    tip(`<b>${yr}</b><br>Median ${f1(d.med)} µg/L<br>90th percentile ${f1(d.p90)} µg/L<br>${d.n} samples`,ev);});
+  ov.addEventListener('pointerleave',()=>{untip();cross.setAttribute('visibility','hidden');});
+}
+/* A3: low-oxygen dates per year */
+function chartDO(host){const W=390,H=158,m={t:24,r:12,b:24,l:40};const {g,w,h}=frame(host,W,H,m);
+  const D=C.do_low;const bw=Math.min(16,w/D.length-4);const X=i=>(i+0.5)*w/D.length;const Y=v=>h-v/6*h;
+  yAxis(g,Y,[0,2,4,6],w,null,'dates');
+  D.forEach((d,i)=>{const x=X(i)-bw/2,y=Y(d.low),hh=h-y;if(d.low>0){E('path',{d:`M${x},${h}V${y+4}Q${x},${y} ${x+4},${y}H${x+bw-4}Q${x+bw},${y} ${x+bw},${y+4}V${h}Z`,fill:'var(--s1)'},g);}
+    if(i%3===0||i===D.length-1){const t=E('text',{x:X(i),y:h+15,'text-anchor':'middle'},g);t.textContent=d.y;}
+    const hit=E('rect',{x:X(i)-w/D.length/2,y:0,width:w/D.length,height:h,fill:'transparent'},g);
+    hit.addEventListener('pointermove',ev=>tip(`<b>${d.y}</b><br>${d.low} of ${d.dates} sampling dates below 4.8 mg/L<br>Lowest reading ${f1(d.min)} mg/L`,ev));hit.addEventListener('pointerleave',untip);});
+  const mx=D.reduce((a,b)=>b.low>a.low?b:a);const t=E('text',{x:X(D.indexOf(mx)),y:Y(mx.low)-5,'text-anchor':'middle',class:'lab'},g);t.textContent=mx.low;
+}
+/* B1: seasonal surface temperature by era */
+const ERAS=[['1984-1999','1984–1999','var(--era1)'],['2000-2012','2000–2012','var(--era2)'],['2013-2026','2013–2026','var(--era3)']];
+function chartEra(host){const W=390,H=216,m={t:24,r:12,b:24,l:34};const {g,w,h}=frame(host,W,H,m);
+  const X=d=>(d-1)/364*w;const Y=v=>h-(v+2)/28*h;
+  yAxis(g,Y,[0,5,10,15,20,25],w,null,'°C');
+  [1,32,60,91,121,152,182,213,244,274,305,335].forEach((d,i)=>{const t=E('text',{x:X(d+14),y:h+15,'text-anchor':'middle'},g);t.textContent=MON[i][0];});
+  const ry=Y(20);E('line',{x1:0,x2:w,y1:ry,y2:ry,class:'ref'},g);const rt=E('text',{x:4,y:ry-4},g);rt.textContent='20 °C: coldwater fish threshold';
+  ERAS.forEach(([k,lab,c])=>{const cur=C.era[k];const pts=cur.map((v,i)=>[1+i*3,v]);E('path',{d:linePath(pts,X,Y),fill:'none',stroke:c,'stroke-width':2,'stroke-linejoin':'round'},g);});
+  const cross=E('line',{y1:0,y2:h,class:'ax',visibility:'hidden'},g);const ov=E('rect',{x:0,y:0,width:w,height:h,fill:'transparent'},g);
+  ov.addEventListener('pointermove',ev=>{const r=ov.getBoundingClientRect();const d=Math.max(1,Math.min(364,Math.round(1+(ev.clientX-r.left)/r.width*364)));const i=Math.round((d-1)/3);cross.setAttribute('x1',X(d));cross.setAttribute('x2',X(d));cross.setAttribute('visibility','visible');
+    tip(`<b>${doyDate(d)}</b><br>`+ERAS.map(([k,lab])=>`${lab}: ${f1(C.era[k][Math.min(i,C.era[k].length-1)])} °C`).join('<br>'),ev);});
+  ov.addEventListener('pointerleave',()=>{untip();cross.setAttribute('visibility','hidden');});
+}
+/* B2: Jun–Sep anomaly bars + Theil–Sen line */
+function chartAnom(host){const W=390,H=178,m={t:24,r:12,b:24,l:34};const {g,w,h}=frame(host,W,H,m);
+  const D=C.summer_anom;const x0=1984,x1=2026;const bwid=w/(x1-x0+1);const X=y=>(y-x0+0.5)*bwid;const Y=v=>h/2-v/3*(h/2);
+  yAxis(g,Y,[-3,-1.5,0,1.5,3],w,v=>(v>0?'+':'')+v,'°C');E('line',{x1:0,x2:w,y1:Y(0),y2:Y(0),class:'ax'},g);
+  D.forEach(d=>{const x=X(d.yr)-Math.min(5,bwid*0.7)/2,bw=Math.min(5,bwid*0.7),y0=Y(0),y=Y(d.anom);E('rect',{x,y:Math.min(y,y0),width:bw,height:Math.max(1,Math.abs(y-y0)),rx:1.5,fill:d.anom>=0?'var(--pos)':'var(--neg)'},g);
+    const hit=E('rect',{x:X(d.yr)-bwid/2,y:0,width:bwid,height:h,fill:'transparent'},g);hit.addEventListener('pointermove',ev=>tip(`<b>${d.yr}</b><br>June–September ${d.anom>0?'+':''}${f1(d.anom)} °C vs the 1984–2026 seasonal normal<br>${d.n} clear scenes`,ev));hit.addEventListener('pointerleave',untip);});
+  [1985,1995,2005,2015,2025].forEach(y=>{const t=E('text',{x:X(y),y:h+15,'text-anchor':'middle'},g);t.textContent=y;});
+  const xs=D.map(d=>d.yr),ys=D.map(d=>d.anom);const sl=[];for(let i=0;i<xs.length;i++)for(let j=i+1;j<xs.length;j++)sl.push((ys[j]-ys[i])/(xs[j]-xs[i]));sl.sort((a,b)=>a-b);const b=sl[Math.floor(sl.length/2)];
+  const ints=xs.map((x,i)=>ys[i]-b*x).sort((a,c)=>a-c);const a=ints[Math.floor(ints.length/2)];
+  E('path',{d:`M${X(x0)},${Y(a+b*x0)}L${X(x1)},${Y(a+b*x1)}`,stroke:'var(--ink)','stroke-width':2,fill:'none','stroke-linecap':'round'},g);
+  const t=E('text',{x:4,y:Y(2.3),class:'lab'},g);t.textContent='Trend +'+f2(b*10)+' °C per decade';
+}
+/* D1: hypsometry, horizontal bars coloured by the map's depth ramp */
+function chartHyps(host){const W=390,H=230,m={t:10,r:70,b:24,l:56};const {g,w,h}=frame(host,W,H,m);
+  const D=C.bathy.hyps.filter(d=>d.lo>=0);const n=D.length;const rowH=h/n;const X=v=>v/60*w;
+  [0,20,40,60].forEach(v=>{const x=X(v);E('line',{x1:x,x2:x,y1:0,y2:h,class:'gl'},g);const t=E('text',{x,y:h+15,'text-anchor':'middle'},g);t.textContent=v;});
+  
+  const col=mid=>{const R=['#cde2fb','#b7d3f6','#9ec5f4','#86b6ef','#6da7ec','#5598e7','#3987e5','#2a78d6','#256abf','#1c5cab','#184f95','#104281','#0d366b'];return R[Math.min(R.length-1,Math.round(Math.min(mid,5)/5*(R.length-1)))];};
+  D.forEach((d,i)=>{const y=i*rowH+rowH*0.18,bh=Math.min(16,rowH*0.64),wx=X(d.ha);
+    E('path',{d:`M0,${y}H${Math.max(0,wx-4)}Q${wx},${y} ${wx},${y+4}V${y+bh-4}Q${wx},${y+bh} ${Math.max(0,wx-4)},${y+bh}H0Z`,fill:col((d.lo+Math.min(d.hi,5))/2)},g);
+    const t=E('text',{x:-6,y:y+bh/2+3.5,'text-anchor':'end'},g);t.textContent=d.lo+'–'+(d.hi>5?'4.8':d.hi)+' m';
+    const hit=E('rect',{x:-56,y:i*rowH,width:w+56,height:rowH,fill:'transparent'},g);hit.addEventListener('pointermove',ev=>tip(`<b>${d.lo}–${d.hi>5?4.8:d.hi} m deep</b><br>${f1(d.ha)} ha · ${f1(d.pct)}% of the pond`,ev));hit.addEventListener('pointerleave',untip);});
+  const e=C.eel['2021'];const yOf=dep=>{let i=D.findIndex(d=>dep>d.lo&&dep<=d.hi);if(i<0)i=0;const d=D[i];return (i+(dep-d.lo)/((d.hi>5?4.8:d.hi)-d.lo))*rowH;};
+  const bx=w+10,y1=yOf(e.p10),y2=yOf(e.p90);E('path',{d:`M${bx-4},${y1}H${bx}V${y2}H${bx-4}`,fill:'none',stroke:'#1f9e5a','stroke-width':2},g);
+  const t1=E('text',{x:bx+4,y:(y1+y2)/2-4,class:'lab'},g);t1.textContent='Eelgrass';const t2=E('text',{x:bx+4,y:(y1+y2)/2+9},g);t2.textContent='2021 beds';
+}
+/* tall segmented bar */
+function segbar(parent,parts,unit,fmt){const tot=parts.reduce((a,b)=>a+b[1],0);const d=document.createElement('div');d.className='segbar';d.setAttribute('role','img');d.setAttribute('aria-label',parts.map(p=>`${p[0]}: ${fmt(p[1])} ${unit} (${Math.round(p[1]/tot*100)}%)`).join('; '));
+  parts.forEach(([lab,v,c,dark])=>{const s=document.createElement('div');const share=v/tot;s.style.flex=`${share} 1 0`;s.style.background=c;s.style.color=dark?'#0b0b0b':'#ffffff';s.textContent=share>=0.07?Math.round(share*100)+'%':'';
+    s.addEventListener('pointermove',ev=>tip(`<b>${lab}</b><br>${fmt(v)} ${unit} · ${Math.round(share*100)}%`,ev));s.addEventListener('pointerleave',untip);d.appendChild(s);});
+  parent.appendChild(d);legend(parent,parts.map(p=>[p[0],p[2],'box']));}
+/* eelgrass by year: three columns */
+function chartEel(host){const W=390,H=148,m={t:26,r:12,b:24,l:34};const {g,w,h}=frame(host,W,H,m);
+  const D=[[2012,70.6],[2016,33.5],[2021,50.5]];const X=i=>(i+0.5)*w/3;const Y=v=>h-v/80*h;yAxis(g,Y,[0,40,80],w,null,'ac');
+  D.forEach(([y,v],i)=>{const bw=24,x=X(i)-bw/2,yy=Y(v);E('path',{d:`M${x},${h}V${yy+4}Q${x},${yy} ${x+4},${yy}H${x+bw-4}Q${x+bw},${yy} ${x+bw},${yy+4}V${h}Z`,fill:'#1f9e5a'},g);
+    const t=E('text',{x:X(i),y:yy-5,'text-anchor':'middle',class:'lab'},g);t.textContent=f1(v);const tx=E('text',{x:X(i),y:h+15,'text-anchor':'middle'},g);tx.textContent=y;});
+}
+/* E3: paired mornings, brook mouth vs Harmonic Cove */
+function chartPair(host){const D=C.brook_cove;const W=390,rowH=13,m={t:14,r:12,b:24,l:70};const H=m.t+m.b+D.length*rowH;const {g,w,h}=frame(host,W,H,m);
+  const X=v=>(v-6)/22*w;[8,12,16,20,24,28].forEach(v=>{const x=X(v);E('line',{x1:x,x2:x,y1:0,y2:h,class:'gl'},g);const t=E('text',{x,y:h+15,'text-anchor':'middle'},g);t.textContent=v+'°';});
+  const rx=X(20);E('line',{x1:rx,x2:rx,y1:-6,y2:h,class:'ref'},g);const rt=E('text',{x:rx+4,y:-3},g);rt.textContent='20 °C';
+  D.forEach((d,i)=>{const y=i*rowH+rowH/2;const dt_=new Date(d.d+'T12:00:00Z');const lab=E('text',{x:-6,y:y+3.5,'text-anchor':'end'},g);lab.textContent=dt_.getUTCDate()+' '+MON[dt_.getUTCMonth()]+' '+String(dt_.getUTCFullYear()).slice(2);
+    E('line',{x1:X(d.b),x2:X(d.c),y1:y,y2:y,stroke:'var(--rule)','stroke-width':2},g);
+    E('circle',{cx:X(d.b),cy:y,r:4.5,fill:'var(--s1)',stroke:'var(--panel)','stroke-width':2},g);E('circle',{cx:X(d.c),cy:y,r:4.5,fill:'var(--s2)',stroke:'var(--panel)','stroke-width':2},g);
+    const hit=E('rect',{x:-70,y:i*rowH,width:w+70,height:rowH,fill:'transparent'},g);hit.addEventListener('pointermove',ev=>tip(`<b>${d.d}</b><br>Brook mouth ${f1(d.b)} °C<br>Harmonic Cove ${f1(d.c)} °C<br>Difference ${f1(d.c-d.b)} °C`,ev));hit.addEventListener('pointerleave',untip);});
+}
+/* E4: coldwater thermal calendar for Harmonic Cove, two eras */
+function chartCal(host){const W=390,H=104,m={t:8,r:12,b:22,l:74};const {g,w,h}=frame(host,W,H,m);
+  const X=d=>(d-1)/365*w;const rows=[['1984-1999','1984–1999'],['2013-2026','2013–2026']];const rh=26;
+  const cls=v=>v>20?'var(--bad)':v>16?'var(--caution)':'var(--good)';
+  rows.forEach(([k,lab],ri)=>{const cur=C.cove[k];const y=ri*(rh+12);let start=0;
+    for(let i=1;i<=cur.length;i++){if(i===cur.length||cls(cur[i])!==cls(cur[start])){E('rect',{x:X(start+1),y,width:Math.max(1,X(i+1)-X(start+1)-1),height:rh,fill:cls(cur[start]),rx:2},g);start=i;}}
+    const t=E('text',{x:-6,y:y+rh/2+3.5,'text-anchor':'end',class:'lab'},g);t.textContent=lab;
+    const hit=E('rect',{x:0,y,width:w,height:rh,fill:'transparent'},g);hit.addEventListener('pointermove',ev=>{const r=hit.getBoundingClientRect();const d=Math.max(1,Math.min(365,Math.round(1+(ev.clientX-r.left)/r.width*364)));const v=cur[d-1];
+      tip(`<b>${lab}, ${doyDate(d)}</b><br>Harmonic Cove ${f1(v)} °C (Landsat fit)<br>${v>20?'Above 20 °C':v>16?'16–20 °C':'16 °C or less'}`,ev);});hit.addEventListener('pointerleave',untip);});
+  [1,32,60,91,121,152,182,213,244,274,305,335].forEach((d,i)=>{const t=E('text',{x:X(d+14),y:h+14,'text-anchor':'middle'},g);t.textContent=MON[i][0];});
+}
+
+/* ---------- findings ---------- */
+const cm=C.cove_meta,em=C.era_meta;
+document.getElementById('lead').innerHTML=`<b>Quonnie has no listed impairments and is open to shellfishing, but its algae, nitrogen and temperature are all rising, and the western end, where Quonochontaug Brook comes in, is the greenest and the most often short of oxygen.</b> The brook enters Harmonic Cove cold, fresh and carrying nitrate. The cove now stays above 20 °C, a common critical threshold for coldwater fish, from early June to late September.`;
+const FS=[
+ {id:'algae',chip:'Algae',title:'Algae peak in late summer, and the peaks are rising',layers:['sites','basins'],fit:'pond',build(el){
+  el.insertAdjacentHTML('beforeend',`<p>Chlorophyll a, the standard measure of algae, climbs from a May median of 1.9 µg/L to 4.8–4.9 µg/L in August and September, then eases in October. These are 882 surface samples from four Salt Pond Watchers sites, 2007–2024.</p>`);
+  const f1_=figure(el,'Chlorophyll a by month: median and 10th–90th percentile, four pond sites, 2007–2024');chartChlMonth(f1_);dataTable(f1_,['Month','Median','10th pct','90th pct','Samples'],C.chl_month.map(d=>[MON[d.m-1],f1(d.med),f1(d.p10),f1(d.p90),d.n]));
+  el.insertAdjacentHTML('beforeend',`<p>The median rose from 2.8 µg/L in 2007–2013 to 4.3 µg/L in 2014–2024, and the 90th percentile from 5.8 to 9.7 µg/L. That keeps Quonnie in NOAA’s “medium” chlorophyll class (90th percentile 5–20 µg/L), but higher in it. 2023 was the greenest year in the 2007–2024 record. Trends point up at all four sites and are significant at North of Bill’s Island and Harmonic Cove Channel (Kendall p &lt; 0.05).</p>`);
+  const f2_=figure(el,'Chlorophyll a each year, May–October, four pond sites pooled (µg/L)');legend(f2_,[['Median','var(--s1)'],['90th percentile','var(--s2)']]);chartChlYear(f2_);dataTable(f2_,['Year','Median','90th pct','Samples'],C.chl_year.map(d=>[d.y,f1(d.med),f1(d.p90),d.n]));
+  el.insertAdjacentHTML('beforeend',`<p>Clarity slipped with it: the summer Secchi depth fell from 2.3 m in 2007–2013 to 2.0 m in 2020–2024. Early-morning oxygen dropped below the state’s 4.8 mg/L criterion on at least one sampling date in 14 of the 16 years. The worst readings were 0.5–0.6 mg/L top to bottom at Harmonic Cove on 14 September 2023, and 0.0 mg/L at 3.75 m north of Bill’s Island on 5 August 2020.</p>`);
+  const f3_=figure(el,'Sampling dates with any reading below 4.8 mg/L dissolved oxygen, four pond sites');chartDO(f3_);dataTable(f3_,['Year','Dates below 4.8','Dates sampled','Lowest (mg/L)'],C.do_low.map(d=>[d.y,d.low,d.dates,f1(d.min)]));
+  el.insertAdjacentHTML('beforeend',`<p>The western end is greener. On the same days, chlorophyll at Harmonic Cove Buoy and Judge’s Rock runs about a third higher than north of Bill’s Island, near the breachway (median ratios 1.33 and 1.38).</p>
+   <p class="note"><b>Satellite check.</b> Sentinel-2 chlorophyll indices (NDCI, MCI, red-edge ratio) from 606 clear scenes, 2015–2026, did not track these samples: 178 matchups within a day of sampling, best ρ = 0.16. Quonnie is shallow, clear and low in chlorophyll, so the bottom swamps the signal. The algal record here is the in-situ one.</p>`);}},
+ {id:'temperature',chip:'Temperature',title:'The warm season is five weeks longer than in the 1980s',layers:['lsts'],fit:'pond',build(el){
+  el.insertAdjacentHTML('beforeend',`<p>Landsat thermal imagery gives a 42-year record of the pond’s surface. There are ${C.ls_n} clear scenes, 1984–2026, checked against Salt Pond Watchers thermometers: ${C.ls_match.n} same-day matchups, r = ${f2(C.ls_match.r)}, mean bias +${f2(C.ls_match.bias)} °C, RMSE ${f1(C.ls_match.rmse)} °C.</p>`);
+  const f_=figure(el,'Seasonal surface temperature of the open-water interior, fitted to all clear scenes in each period (°C)');legend(f_,ERAS.map(([k,lab,c])=>[lab,c]));chartEra(f_);
+  dataTable(f_,['Period','Days above 20 °C','First','Last','Peak'],ERAS.map(([k,lab])=>[lab,em[k].days20,doyDate(em[k].first20),doyDate(em[k].last20),f1(em[k].peak)+' °C']));
+  el.insertAdjacentHTML('beforeend',`<p>The interior now stays above 20 °C for about ${em['2013-2026'].days20} days a year, from ${doyLong(em['2013-2026'].first20)} to ${doyLong(em['2013-2026'].last20)}. In 1984–1999 it was about ${em['1984-1999'].days20} days. Summer surface temperature rose about 0.5–0.75 °C per decade; the range reflects how sensor and overpass-time changes are handled. The nearshore sound outside the barrier warmed at nearly the same rate (0.6 °C per decade), so the pond is tracking the ocean. The pond-minus-ocean difference shows no significant trend.</p>`);
+  const f2_=figure(el,'June–September surface temperature vs the seasonal normal, each year, with the Theil–Sen trend');legend(f2_,[['Warmer than normal','var(--pos)','box'],['Cooler than normal','var(--neg)','box'],['Trend','var(--ink)']]);chartAnom(f2_);dataTable(f2_,['Year','Anomaly (°C)','Scenes'],C.summer_anom.map(d=>[d.yr,(d.anom>0?'+':'')+f1(d.anom),d.n]));
+  el.insertAdjacentHTML('beforeend',`<p>The pond runs warmer than the sound from March to September, by 3.4–3.6 °C in May and June, and colder from October through February. Within the pond, Harmonic Cove is the warm corner. By Landsat it runs about 1.2 °C above the interior in July–August. By thermometer it runs 0.8 °C above north of Bill’s Island on the same mornings. It is about 0.5 °C colder in winter.</p>`);}},
+ {id:'water',chip:'Water testing',title:'Water testing: clean water, rising nutrients at the west end',layers:['sites'],fit:'pond',build(el){
+  el.insertAdjacentHTML('beforeend',`<p>RIDEM classes the pond SA, for shellfishing and swimming. Its 2022 Integrated Report put the pond in Category 2, with no impairments. The whole pond is approved for shellfishing (growing area GA11QW, 2024). The tables summarize every Salt Pond Watchers sample at the four active sites and at the brook mouth.</p>`);
+  const S=Object.fromEntries(C.sites.map(s=>[s.id,s]));const ids=['WW418','WW419','WW309','WW346','WW477'];const nm={WW418:'Harmonic Cove Buoy',WW419:'Harmonic Cove Channel',WW309:'Judge’s Rock',WW346:'N. of Bill’s Island',WW477:'Brook mouth (2009–13)'};
+  const t1=document.createElement('div');t1.innerHTML=`<h4>Algae, nutrients and clarity</h4><table class="t"><thead><tr><th>Site</th><th>Chl a median (90th) µg/L</th><th>Total N mg/L</th><th>Nitrate mg/L</th><th>Total P µg/L</th><th>Secchi m</th></tr></thead><tbody>${ids.map(i=>{const s=S[i];return `<tr class="${i==='WW477'?'br':''}"><td>${nm[i]}</td><td>${s.chl_med!=null?f1(s.chl_med)+' ('+f1(s.chl_p90)+')':'—'}</td><td>${f2(s.tn_med)}</td><td>${s.no3_med<0.1?s.no3_med.toFixed(3):f2(s.no3_med)}</td><td>${f0(s.tp_med)}</td><td>${s.secchi_med!=null?f1(s.secchi_med):'—'}</td></tr>`;}).join('')}</tbody></table>
+  <h4>Oxygen, salinity and bacteria</h4><table class="t"><thead><tr><th>Site</th><th>DO lowest mg/L (% under 4.8)</th><th>Salinity ppt</th><th>Enterococci gm (% over 104)</th><th>Fecal coliform gm (% over 31)</th></tr></thead><tbody>${ids.map(i=>{const s=S[i];return `<tr class="${i==='WW477'?'br':''}"><td>${nm[i]}</td><td>${s.do_min!=null?f1(s.do_min)+' ('+pct(s.do_lt48)+')':'—'}</td><td>${f1(s.sal_med)}</td><td>${f0(s.ent_gm)} (${pct(s.ent_gt104)})</td><td>${f0(s.fc_gm)} (${pct(s.fc_gt31)})</td></tr>`;}).join('')}</tbody></table>`;el.appendChild(t1);
+  el.insertAdjacentHTML('beforeend',`<p>Bacteria are low in the pond: enterococci geometric means of about 2 MPN/100 mL, against a swimming standard of 35. The brook is different: its geometric mean was 98, and 48% of samples topped 104. Total nitrogen is rising at Judge’s Rock (+0.010 mg/L a year) and Harmonic Cove Buoy (+0.005), both significant. Two federal surveys agree with the volunteer record. EPA’s 2015 coastal assessment site measured chlorophyll 3.4 µg/L, total N 0.25 mg/L and Secchi 1.75 m. EMAP’s 2000 site measured chlorophyll 5.1 µg/L. RIDEM puts the pond’s nitrogen load at 24,579 lb a year.</p>
+   <p class="note">Criteria from the RI Water Quality Regulations for SA waters: dissolved oxygen 4.8 mg/L; enterococci 35 (geometric mean) and 104 (single sample) per 100 mL; fecal coliform 14 (geometric mean) and 31 (90th percentile) per 100 mL by membrane filter. Salt Pond Watchers report bacteria as MPN, so read the fecal coliform column as a screen. Oxygen is measured early in the morning, near its daily low.</p>`);}},
+ {id:'floor',chip:'Depth & shore',title:'A shallow lagoon with two deep basins',layers:['depth','contours','eel2021'],fit:'pond',build(el){
+  el.insertAdjacentHTML('beforeend',`<p>NOAA’s 2018 topobathy model puts the pond’s mean depth at ${f1(C.bathy.mean_depth)} m and its deepest point at ${f1(C.bathy.max_depth)} m, in the north-central basin. About 28% of the pond is shallower than 1 m: the flood-tidal delta on both sides of the dredged breachway channel, and the washover flats behind the barrier. At the monitoring buoys, field depths run 0.7–1.4 m deeper than the model, so read it as the shape of the bottom, not survey-grade soundings.</p>`);
+  const f_=figure(el,'Area of the pond by depth, in hectares (NOAA model); the bracket marks the middle 80% of the 2021 eelgrass beds');chartHyps(f_);dataTable(f_,['Depth','Hectares','Share'],C.bathy.hyps.filter(d=>d.lo>=0).map(d=>[d.lo+'–'+(d.hi>5?4.8:d.hi)+' m',f1(d.ha),f1(d.pct)+'%']));
+  el.insertAdjacentHTML('beforeend',`<p>NRCS’s subaqueous soil survey maps the floor by landform. The deep basins are soft, sulfidic mud. Sand covers the flood-tidal delta and the washover fans, and boulder-strewn till terraces fringe the mainland shore.</p>`);
+  const fl=figure(el,'Pond floor by landform, share of 759 acres');segbar(fl,[[LU.basin[1],C.landform.basin,LU.basin[0]],[LU.delta[1],C.landform.delta,LU.delta[0],true],[LU.terrace[1],C.landform.terrace,LU.terrace[0]],[LU.washover[1],C.landform.washover,LU.washover[0]],[LU.channel[1],C.landform.channel,LU.channel[0]]],'ac',f1);
+  el.insertAdjacentHTML('beforeend',`<p>Eelgrass covered 70.6 acres in 2012, 33.5 in 2016 and 50.5 in 2021, mostly 1.2–2.9 m deep on the model. Clarity sets how deep it can grow. Eelgrass needs roughly 20% of surface light. With light attenuation of about 1.7 ÷ Secchi depth, that limit moved from about 2.2 m to 1.9 m as summer Secchi fell from 2.3 to 2.0 m. That puts about 24 ha (60 acres) of pond floor out of reach. The soil survey rates only 16 acres “good” for eelgrass restoration and 259 “fair”.</p>`);
+  const fe=figure(el,'Mapped eelgrass, acres (RIGIS)');chartEel(fe);
+  el.insertAdjacentHTML('beforeend',`<p>NOAA’s 2022 shoreline traces 32 km of pond and island edge. It is 49% marsh and 44% natural beach or bank. Rip-rap, bulkheads, jetties and ramps armor 7%. Within 200 m of the water lie about 150 acres of salt and brackish marsh and 209 acres of tidal flats, pannes and pools. Phragmites covers under an acre, and most of the western barrier is classed undeveloped.</p>`);
+  const fs=figure(el,'Shoreline by type, share of 32.2 km (NOAA CUSP 2022)');segbar(fs,[[SH.marsh[1],C.shore.marsh,SH.marsh[0]],[SH.natural[1],C.shore.natural,SH.natural[0],true],[SH.riprap[1],C.shore.riprap,SH.riprap[0]],[SH.bulkhead[1],C.shore.bulkhead,SH.bulkhead[0]],[SH.jetty[1],C.shore.jetty,SH.jetty[0]]],'m',f0);}},
+{id:'inlet',chip:'Brook inlet',title:'Quonochontaug Brook: a cold, nitrate-rich inlet into the warmest cove',layers:['sites'],fit:'cove',build(el){
+  el.insertAdjacentHTML('beforeend',`<p>Quonochontaug Brook enters the pond at the head of Harmonic Cove. URI Watershed Watch sampled it at the mouth every month from May to October, 2009–2013 (site WW477). In 30 morning samples the brook never topped 19.2 °C. On the 13 June–September mornings sampled at both sites, it ran a median 5.8 °C colder than Harmonic Cove Buoy (range 3.1–7.4 °C). It is fresh, 0–2 ppt, where the cove is seawater at a median 33 ppt. Water that cold in midsummer points to groundwater feeding the brook.</p>`);
+  const fp=figure(el,'The same mornings, May–October 2009–2013, at the brook mouth and in Harmonic Cove (°C)');legend(fp,[['Brook mouth (WW477)','var(--s1)','box'],['Harmonic Cove Buoy (WW418)','var(--s2)','box']]);chartPair(fp);
+  el.insertAdjacentHTML('beforeend',`<p>The cove side of that edge keeps warming. Harmonic Cove now runs above 16 °C from ${doyLong(cm['2013-2026'].first16)} to ${doyLong(cm['2013-2026'].last16)}, ${cm['2013-2026'].days16-cm['1984-1999'].days16} days longer than in 1984–1999. It stays above 20 °C, a common critical threshold for salmonids and other coldwater fish, for ${cm['2013-2026'].days20} days a year, up from ${cm['1984-1999'].days20}. For about four months each summer, cold brook water meets cove water past that threshold.</p>`);
+  const fc=figure(el,'Coldwater thermal calendar for Harmonic Cove, from Landsat seasonal fits');chartCal(fc);legend(fc,[['16 °C or less','var(--good)',{icon:'●'}],['16–20 °C','var(--caution)',{icon:'▲'}],['Above 20 °C','var(--bad)',{icon:'■'}]]);
+  dataTable(fc,['Period','Days over 16 °C','Days over 20 °C','Over 20 °C from','to'],[['1984–1999',cm['1984-1999'].days16,cm['1984-1999'].days20,doyDate(cm['1984-1999'].first20),doyDate(cm['1984-1999'].last20)],['2013–2026',cm['2013-2026'].days16,cm['2013-2026'].days20,doyDate(cm['2013-2026'].first20),doyDate(cm['2013-2026'].last20)]]);
+  el.insertAdjacentHTML('beforeend',`<h4>Nitrogen rides the same water</h4><p>The groundwater that keeps the brook cold also carries nitrate. The brook mouth ran a median 1.7 mg/L nitrate-N, against 1.0 in Ninigret Cove Brook and 0.008 in the pond. Three nearby USGS gauges average 2.2–2.35 cfs of flow per square mile, and the brook’s mean total N was 1.98 mg/L. Together they put the brook’s load at roughly 2.0–2.3 metric tons (4,500–5,100 lb) of nitrogen a year, about a fifth of RIDEM’s estimate for the whole pond. That fits the western end, Harmonic Cove and Judge’s Rock, being the greenest part of the pond and the most often low in oxygen. Cleaner groundwater recharge upslope serves the brook and the pond alike.</p>
+   <h4>Gaps worth filling</h4><ul class="why"><li>The brook mouth (WW477) has not been sampled since 2013. Restarting it with nitrate and bacteria would track the load entering Harmonic Cove.</li><li>Continuous temperature and conductivity loggers at the brook mouth and Harmonic Cove Buoy (WW418) would show how far the cold inflow reaches into the cove, and for how long.</li></ul>`);}}];
+const FIT={pond:L.geoJSON(Q.pond).getBounds(),cove:L.latLngBounds([[41.3340,-71.7445],[41.3410,-71.7330]])};
+const fEl=document.getElementById('findings');
+const isOn=k=>checks[k]?checks[k].checked:map.hasLayer(LAY[k]);
+FS.forEach(s=>{const sec=document.createElement('article');sec.className='fsec';sec.id=s.id;
+  sec.innerHTML=`<div><span class="chip">${s.chip}</span></div><h2>${s.title}</h2>`;s.build(sec);
+  const b=document.createElement('button');b.type='button';b.className='sbtn';b.textContent='Show on map';b.setAttribute('aria-pressed','false');
+  b.addEventListener('click',()=>{active&&active.s===s?storyOff():storyOn(s,b);});sec.insertBefore(b,sec.children[2]);fEl.appendChild(sec);});
+function storyOn(s,btn){if(active)storyOff();const added=[];s.layers.forEach(k=>{if(isOn(k))return;if(checks[k])checks[k].checked=true;add(k);added.push(k);});
+  active={s,btn,added};btn.textContent='Hide from map';btn.setAttribute('aria-pressed','true');restack();map.fitBounds(FIT[s.fit],{padding:[20,20]});if(window.matchMedia('(max-width:820px)').matches)setPanel(false);}
+function storyOff(){if(!active)return;active.added.forEach(k=>{if(checks[k])checks[k].checked=false;rem(k);});active.btn.textContent='Show on map';active.btn.setAttribute('aria-pressed','false');active=null;restack();}
+
+/* ---------- sources ---------- */
+const SRC=[
+ ['Water quality',[['URI Watershed Watch: monitoring data, 1988–2024 CSV files and site list','https://web.uri.edu/watershedwatch/data/historic-data/csv-data-files/'],['Salt Ponds Coalition: Quonochontaug Pond','https://saltpondscoalition.org/quonochontaug-pond/'],['URI Watershed Watch site summary, Judge’s Rock Buoy (WPWA)','https://www.wpwa.org/waterdata/SaltPonds/9240.PDF'],['RI Water Quality Regulations, 250-RICR-150-05-1','https://rules.sos.ri.gov/Regulations/part/250-150-05-1'],['RIDEM 2022 assessment, RI0010043E-07 (EPA How’s My Waterway)','https://mywaterway.epa.gov/waterbody-report/RIDEM/RI0010043E-07/2022/'],['RIGIS estuaries with RIDEM assessment fields','https://services2.arcgis.com/S8zZg9pg23JUEexQ/arcgis/rest/services/HYDRO_Estuary_24K/FeatureServer'],['RIDEM shellfish growing areas, 2024 (RIGIS)','https://services2.arcgis.com/S8zZg9pg23JUEexQ/arcgis/rest/services/ENV_ShellfishRestriction_2024_spf/FeatureServer'],['EPA Water Quality Portal: NCCA 2015 and EMAP 2000 sites','https://www.waterqualitydata.us/'],['Nitrogen loads by pond, RIDEM figures (ecoRI, via Progressive Charlestown)','https://www.progressive-charlestown.com/2018/07/hard-choices.html'],['Bricker and others, 2003: ASSETS eutrophication thresholds','https://tranxfer.natureserve.org/download/USGS-NRMP/RecordSet5_2011-09-15/Proto230_Ecol_Modelling_assets.pdf']]],
+ ['Imagery and temperature',[['Landsat Collection 2 Level-2 surface temperature (Microsoft Planetary Computer)','https://planetarycomputer.microsoft.com/dataset/landsat-c2-l2'],['Sentinel-2 Level-2A (Microsoft Planetary Computer)','https://planetarycomputer.microsoft.com/dataset/sentinel-2-l2a'],['NAIP 2025 aerial imagery (Microsoft Planetary Computer)','https://planetarycomputer.microsoft.com/dataset/naip'],['NOAA tidal datums, Newport 8452660','https://tidesandcurrents.noaa.gov/datums.html?id=8452660']]],
+ ['Depth, bottom and shoreline',[['NOAA NCEI CUDEM 1/9 arc-second topobathy (tile n41.50 w71.75, 2018)','https://coast.noaa.gov/htdata/raster2/elevation/NCEI_ninth_Topobathy_2014_8483/'],['NRCS subaqueous soils (RIGIS)','https://services2.arcgis.com/S8zZg9pg23JUEexQ/arcgis/rest/services/SOIL_Soils_Subaqueous_spf/FeatureServer'],['RIGIS eelgrass mapping 2012, 2016, 2021','https://services2.arcgis.com/S8zZg9pg23JUEexQ/arcgis/rest/services/SAV_2021/FeatureServer'],['NOAA Continually Updated Shoreline Product, 2022 (RIGIS)','https://services2.arcgis.com/S8zZg9pg23JUEexQ/arcgis/rest/services/HYDRO_CUSP_Shoreline_2022/FeatureServer'],['South Coast estuarine habitat (RIGIS)','https://services2.arcgis.com/S8zZg9pg23JUEexQ/arcgis/rest/services/HYDRO_South_Coast_Estuarine_Habitat_spf/FeatureServer'],['Coastal barriers (RIGIS)','https://services2.arcgis.com/S8zZg9pg23JUEexQ/arcgis/rest/services/HYDRO_Coastal_Barriers_spf/FeatureServer'],['Gallegos, 1994: eelgrass needs about 20% of surface light (Dennison and others, 1993)','https://repository.si.edu/bitstream/handle/10088/2886/galleg_RefiningSAVHabitat.pdf']]],
+ ['Quonochontaug Brook inlet',[['EPA Region 10 temperature guidance for salmonids, 2003: 16 °C core rearing, 20 °C migration','https://www.waterboards.ca.gov/water_issues/programs/tmdl/docs/303d_policydocs/375.pdf'],['USGS gauge, Pendleton Hill Brook near Clarks Falls, CT (01118300)','https://waterdata.usgs.gov/monitoring-location/01118300/'],['USGS gauge, Chipuxet River at West Kingston (01117350)','https://waterdata.usgs.gov/monitoring-location/01117350/'],['USGS gauge, Beaver River near Usquepaug (01117468)','https://waterdata.usgs.gov/monitoring-location/01117468/']]]];
+document.getElementById('sources').innerHTML=`<p class="lead">Every number on this page comes from the sources below; the methods note says how each was computed.</p>`+SRC.map(([h,l])=>`<section><h2>${h}</h2><ul class="src">${l.map(([t,u])=>`<li><a href="${u}" target="_blank" rel="noopener">${esc(t)}</a></li>`).join('')}</ul></section>`).join('')+
+ `<section><h2>Methods and limits</h2><div class="note">
+ <p><b>Water testing.</b> All URI Watershed Watch records for sites WW309, WW346, WW418 and WW419 (2006–2024), WW477 at the brook mouth (2009–2013) and WW507 (Ninigret Cove Brook). Chlorophyll and temperature use samples at 1 m or shallower. Trends are Theil–Sen slopes on annual May–October medians with Kendall tests.</p>
+ <p><b>Landsat.</b> WRS-2 path 12, row 31, Landsats 4–9, Collection 2 Level-2 surface temperature. Clouds, shadow and snow are masked with QA_PIXEL. “Interior” is the pond inset 150 m from shore; basins are inset 60–90 m. Scenes more than 3.5 robust standard deviations from a seasonal fit were dropped (20 of 679). Period curves are two-harmonic fits. Trend models were run with and without overpass time and satellite as covariates: 0.52–0.75 °C per decade for June–September.</p>
+ <p><b>Sentinel-2.</b> Level-2A, tile 19TBF, 2015–2026, screened with the scene classification and SWIR. The chlorophyll indices failed validation and are not mapped.</p>
+ <p><b>Depth.</b> NOAA NCEI CUDEM, NAVD88, filled at the far west edge from the adjacent 2016 tile. At Newport, mean sea level for 1983–2001 sat 0.09 m below NAVD88, and sea level has risen since. So depth below NAVD88 is within about 0.1 m of depth below today’s mean pond level.</p>
+ <p><b>Brook inlet.</b> Temperature, salinity and nutrients at the mouth come from URI Watershed Watch site WW477, sampled in the morning, May–October 2009–2013. The nitrogen load multiplies the brook’s mean total nitrogen by flow scaled from its drainage area, about half a square mile, and the long-term yield of three nearby USGS gauges. It assumes May–October concentrations hold year-round, so treat it as an order of magnitude. The 16 °C and 20 °C thresholds follow EPA’s temperature guidance for salmonids.</p></div></section>`;
+
+/* ---------- start: hash routes ---------- */
+function route(){const h=(location.hash||'').slice(1);if(TABS.includes(h)){setTab(h);return;}const sec=document.getElementById(h);if(sec&&sec.classList.contains('fsec')){setTab('findings');setTimeout(()=>sec.scrollIntoView({block:'start'}),60);}}
+window.addEventListener('hashchange',route);route();
+})();
+</script>
+</body>
+</html>
